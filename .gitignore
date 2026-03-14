@@ -10,4 +10,8 @@ wheels/
 # Virtual environments
 .venv
 
+# Pulled data
 satcat.csv
+
+# Secrets
+.env
