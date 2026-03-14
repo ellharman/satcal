@@ -7,14 +7,13 @@ import csv
 import requests
 
 
-def pull_and_save_csv():
-    res = requests.get("https://celestrak.org/pub/satcat.csv")
-    res.raise_for_status()
-    with open("satcat.csv", "w") as file:
-        file.write(res.text)
-
-
 def sync_satcat_csv():
+    def pull_and_save_csv():
+        res = requests.get("https://celestrak.org/pub/satcat.csv")
+        res.raise_for_status()
+        with open("satcat.csv", "w") as file:
+            file.write(res.text)
+
     if not os.path.exists("satcat.csv"):
         pull_and_save_csv()
     else:
@@ -24,7 +23,7 @@ def sync_satcat_csv():
         print(current_time)
         print(last_modified)
         diff = current_time - last_modified
-        if diff.days > 0 or os.environ.get("FORCE_SYNC_SATCAT"):
+        if diff.days > 0 or int(os.environ.get("FORCE_SYNC_SATCAT")) == 1:
             pull_and_save_csv()
 
 
@@ -82,7 +81,7 @@ def main():
             )
 
     # Get celestrak data in pretty json format
-    celestrak_data = get_celestrak_data_by_satcat_id(satcatId, "JSON-PRETTY")
+    celestrak_data = get_celestrak_data_by_satcat_id(satcatId, "2LE")
     print(celestrak_data)
 
 
