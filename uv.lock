@@ -149,7 +149,7 @@ wheels = [
 ]
 
 [[package]]
-name = "issitcoming"
+name = "satcal"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

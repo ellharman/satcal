@@ -113,8 +113,13 @@ def main():
     satcat_id = int(sys.argv[1])
     user_lat = float(sys.argv[2])
     user_lon = float(sys.argv[3])
-    log_level = sys.argv[4] if len(sys.argv) > 4 else "INFO"
+    offset_hrs = int(sys.argv[4])
+    log_level = sys.argv[5] if len(sys.argv) > 5 else "INFO"
     logging.basicConfig(level=log_level.upper())
+    assert satcat_id
+    assert user_lat
+    assert user_lon
+    assert offset_hrs
     print(f"Running with satcat ID: {satcat_id}")
     sync_satcat_csv()
     ephemeris = load("de421.bsp")
@@ -142,7 +147,7 @@ def main():
     sat = create_sat_entity_from_omm_csv(ts, omm_csv)
 
     passes = find_visible_passes(
-        sat, wgs84.latlon(user_lat, user_lon), ephemeris, ts, 120
+        sat, wgs84.latlon(user_lat, user_lon), ephemeris, ts, offset_hrs
     )
 
     pprint(passes)
