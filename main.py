@@ -27,7 +27,7 @@ def sync_satcat_csv():
         print(current_time)
         print(last_modified)
         diff = current_time - last_modified
-        if diff.days > 0 or int(os.environ.get("FORCE_SYNC_SATCAT")) == 1:
+        if diff.days > 0 or int(os.environ.get("FORCE_SYNC_SATCAT", 0)) == 1:
             pull_and_save_csv()
 
 
@@ -37,7 +37,7 @@ def find_satcat_entry_by_id(satcatId):
         for row in reader:
             if row["NORAD_CAT_ID"] == str(satcatId):
                 return row
-        print("No entry found for ID: {satcatId}")
+        print(f"No entry found for ID: {satcatId}")
         print("The SATCAT data is valid as of 14/03/2026")
     return None
 
@@ -70,25 +70,6 @@ def postcode_to_latlon(postcode):
     res.raise_for_status()
     data = res.json()
     return data["result"]["latitude"], data["result"]["longitude"]
-
-
-def reverse_geocode(lat, lon):
-    print("Reverse geocoding")
-    api_key = os.environ.get("GEOAPIFY_KEY", "")
-    if len(str(api_key)) == 0:
-        raise Exception("Cannot reverse geocode without a Geoapify API key")
-
-    url = f"https://api.geoapify.com/v1/geocode/reverse?lat={lat}&lon={lon}&apiKey={api_key}"
-    res = requests.get(url)
-    res.raise_for_status()
-    dict = json.loads(res.text)
-    pprint(dict)
-
-
-def lat_lon_at_ts(sat: EarthSatellite, ts, offset=0):
-    geocentric_post = sat.at(ts.now() + offset)
-    lat, lon = wgs84.latlon_of(geocentric_post)
-    return (lat.degrees, lon.degrees)
 
 
 def find_visible_passes(sat: EarthSatellite, location, eph, ts, hours_ahead=6):
@@ -161,7 +142,7 @@ def main():
     sat = create_sat_entity_from_omm_csv(ts, omm_csv)
 
     passes = find_visible_passes(
-        sat, wgs84.latlon(user_lat, user_lon), ephemeris, ts, 6
+        sat, wgs84.latlon(user_lat, user_lon), ephemeris, ts, 120
     )
 
     pprint(passes)
