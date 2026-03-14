@@ -6,50 +6,82 @@ satcal is a small CLI tool for predicting when a given Earth–orbiting satellit
 
 - **Prerequisites**: Python 3.10+
 
-You can install the project in editable mode:
-
 ```bash
-pip install -e .
+pip install satcal
 ```
 
-or, if you use `uv`:
+or with `uv`:
 
 ```bash
-uv pip install -e .
+uv tool install satcal
 ```
 
-This will also install the required dependencies (`requests`, `requests-cache`, `skyfield`).
+This installs `satcal` to your path.
 
 ### Usage
 
-The main entry point is `main.py` and expects:
+Once installed, use the `satcal` CLI:
 
 ```bash
-python3 main.py <satcat_id> <latitude> <longitude> <hours_ahead> [log_level]
+satcal <satcat_id> <latitude> <longitude> <hours_ahead> [-v|--verbose]
 ```
 
 - **satcat_id**: NORAD catalog ID (integer) of the satellite.
 - **latitude / longitude**: Observer location in decimal degrees.
-- **hours_ahead**: How many hours ahead to search for passes.
-- **log_level** (optional): One of `DEBUG`, `INFO`, etc. Defaults to `INFO`.
+- **hours_ahead**: How many hours ahead of the current time to search for passes.
+- **-v / --verbose** (optional): Enable verbose (debug) logging to stderr.
 
-Example (International Space Station over London, looking 6 hours ahead):
+Example (International Space Station over central London, looking 6 hours ahead):
 
 ```bash
-python3 main.py 25544 51.5074 -0.1278 6
+satcal 25544 51.501669 -0.141006 6
 ```
 
 The script will:
 
 - **Sync SATCAT data** from Celestrak into `satcat.csv` (re-downloaded if older than 1 day, or if `FORCE_SYNC_SATCAT=1` is set in the environment).
-- **Print basic satellite info** (name, launch date, and decay date if present).
+- Print basic satellite info (name, launch date, and decay date if present) if running verbosely
 - **Compute visible passes** using Skyfield and pretty-print a list of passes, each containing:
   - rise / peak / set times (UTC, ISO format)
   - elevation and azimuth in degrees
   - a `visible` flag indicating whether the pass is actually observable (sat sunlit, observer in darkness).
 
+#### Output
+
+The result is printed as a single JSON array on stdout, e.g.
+
+```json
+[
+  {
+    "rise": {
+      "time": "2026-03-14T19:35:36Z",
+      "alt": 20.004231034654826,
+      "az": 220.04202056913311,
+      "visible": true
+    },
+    "peak": {
+      "time": "2026-03-14T19:37:37Z",
+      "alt": 44.435153007618425,
+      "az": 155.68658191565754,
+      "visible": true
+    },
+    "set": {
+      "time": "2026-03-14T19:39:37Z",
+      "alt": 19.997122770793396,
+      "az": 91.46019198197804,
+      "visible": false
+    }
+  }
+]
+```
+
+- The outer array is one element per visible‑altitude pass found in the requested window.
+- Within each pass object:
+  - `time` _(string)_: UTC timestamp in ISO 8601 format, e.g. `"2026-03-14T19:37:37Z"`.
+  - `alt` _(number)_: altitude in degrees.
+  - `az` _(number)_: azimuth in degrees.
+  - `visible` _(boolean)_: whether the satellite is sunlit and the observer is in darkness at that moment.
+
 ### Notes
 
-- SATCAT data is considered valid as of 14/03/2026; re-run with `FORCE_SYNC_SATCAT=1` if you need to force an update.
-- The observer location can be obtained from any geocoding service (e.g., converting a postcode to latitude/longitude) before calling `main.py`.
-
+- Run with `FORCE_SYNC_SATCAT=1` if you need to force an update.

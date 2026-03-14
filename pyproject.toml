@@ -1,7 +1,7 @@
 [project]
 name = "satcal"
 version = "0.1.0"
-description = "Add your description here"
+description = "CLI tool for predicting visible satellite passes from a given location."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -13,3 +13,13 @@ license = "MIT"
 license-files = [
     "LICENSE.txt",
 ]
+
+[project.scripts]
+satcal = "satcal.cli:main"
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
